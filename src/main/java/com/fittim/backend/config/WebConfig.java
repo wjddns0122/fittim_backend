@@ -14,4 +14,12 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedMethods("*") // 모든 HTTP 메소드 허용 (GET, POST, PUT, DELETE, OPTIONS 등)
                 .allowCredentials(true); // 쿠키/인증 정보 포함 허용
     }
+
+    @Override
+    public void addResourceHandlers(
+            org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry registry) {
+        String uploadPath = System.getProperty("user.dir") + "/uploads/";
+        registry.addResourceHandler("/images/**")
+                .addResourceLocations("file:" + uploadPath);
+    }
 }
