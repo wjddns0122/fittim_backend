@@ -1,7 +1,6 @@
 package com.fittim.backend.controller;
 
-import com.fittim.backend.dto.LoginRequest;
-import com.fittim.backend.dto.SignupRequest;
+import com.fittim.backend.dto.AuthDto.*;
 import com.fittim.backend.dto.JwtResponse;
 import com.fittim.backend.service.AuthService;
 import jakarta.validation.Valid;
@@ -20,6 +19,18 @@ import java.net.URI;
 public class AuthController {
 
     private final AuthService authService;
+
+    @PostMapping("/send-verification-code")
+    public ResponseEntity<String> sendVerificationCode(@RequestBody @Valid SendCodeRequest request) {
+        authService.sendVerificationCode(request);
+        return ResponseEntity.ok("Verification code sent");
+    }
+
+    @PostMapping("/verify-code")
+    public ResponseEntity<String> verifyCode(@RequestBody @Valid VerifyCodeRequest request) {
+        authService.verifyCode(request);
+        return ResponseEntity.ok("Code verified");
+    }
 
     @PostMapping("/signup")
     public ResponseEntity<Void> signup(@RequestBody @Valid SignupRequest request) {
