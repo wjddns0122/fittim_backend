@@ -37,8 +37,37 @@ public class WardrobeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<WardrobeDto>> getMyWardrobe(@AuthenticationPrincipal UserDetails userDetails) {
-        List<WardrobeDto> items = wardrobeService.getMyWardrobe(userDetails.getUsername());
+    public ResponseEntity<List<WardrobeDto>> getMyWardrobe(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String season) {
+
+        Category catEnum = null;
+        if (category != null && !category.equalsIgnoreCase("ALL")) {
+            try {
+                catEnum = Category.valueOf(category.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Ignore invalid category or handle error? For simple filtering, ignore or
+                // treat as null
+            }
+        }
+
+        Season seaEnum = null;
+        if (season != null && !season.equalsIgnoreCase("ALL")) {
+            try {
+                seaEnum = Season.valueOf(season.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Ignore
+            }
+        }
+
+        List<WardrobeDto> items = wardrobeService.getMyWardrobe(userDetails.getUsername(), catEnum, seaEnum);
+        return ResponseEntity.ok(items);
+    }
+
+    @GetMapping("/recent")
+    public ResponseEntity<List<WardrobeDto>> getRecentItems(@AuthenticationPrincipal UserDetails userDetails) {
+        List<WardrobeDto> items = wardrobeService.getRecentItems(userDetails.getUsername());
         return ResponseEntity.ok(items);
     }
 }

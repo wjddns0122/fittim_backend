@@ -3,9 +3,11 @@ package com.fittim.backend.service;
 import com.fittim.backend.dto.FitRequestDto;
 import com.fittim.backend.dto.FitResponseDto;
 import com.fittim.backend.entity.Category;
+import com.fittim.backend.entity.FitHistory;
 import com.fittim.backend.entity.Season;
 import com.fittim.backend.entity.User;
 import com.fittim.backend.entity.WardrobeItem;
+import com.fittim.backend.repository.FitHistoryRepository;
 import com.fittim.backend.repository.UserRepository;
 import com.fittim.backend.repository.WardrobeItemRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +22,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FitService {
 
+    private final FitHistoryRepository fitHistoryRepository;
     private final WardrobeItemRepository wardrobeItemRepository;
     private final UserRepository userRepository;
     private final Random random = new Random();
 
-    @Transactional(readOnly = true)
+    @Transactional
     public FitResponseDto recommend(String email, FitRequestDto request) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -56,7 +59,33 @@ public class FitService {
             }
         }
 
+        // Save History
+        FitHistory history = FitHistory.builder()
+                .user(user)
+                .top(randomTop)
+                .bottom(randomBottom)
+                .outer(randomOuter)
+                .place(request.place())
+                .mood(null) // Mood is not in current request DTO, can be added later
+                .build();
+
+        fitHistoryRepository.save(history);
+
         return FitResponseDto.of(randomTop, randomBottom, randomOuter);
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<com.fittim.backend.dto.FitHistoryDto> getFitHistory(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Fetch top 10
+        return fitHistoryRepository
+                .findTopByUserIdOrderByCreatedAtDesc(user.getId(),
+                        org.springframework.data.domain.PageRequest.of(0, 10))
+                .stream()
+                .map(com.fittim.backend.dto.FitHistoryDto::from)
+                .collect(Collectors.toList());
     }
 
     private List<WardrobeItem> filterByCategory(List<WardrobeItem> items, Category category) {

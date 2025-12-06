@@ -2,18 +2,18 @@ spring:
   application:
     name: fittim-backend
   datasource:
-    url: jdbc:h2:mem:fittimdb
+    url: jdbc:h2:mem:fittimdb;MODE=MySQL;DB_CLOSE_DELAY=-1
     driverClassName: org.h2.Driver
     username: sa
     password:
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: update
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
   h2:
     console:
       enabled: true

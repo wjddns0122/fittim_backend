@@ -26,4 +26,10 @@ public class FitController {
         FitResponseDto recommendation = fitService.recommend(userDetails.getUsername(), request);
         return ResponseEntity.ok(recommendation);
     }
+
+    @org.springframework.web.bind.annotation.GetMapping("/history")
+    public ResponseEntity<java.util.List<com.fittim.backend.dto.FitHistoryDto>> getFitHistory(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(fitService.getFitHistory(userDetails.getUsername()));
+    }
 }
