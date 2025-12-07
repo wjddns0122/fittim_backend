@@ -11,6 +11,7 @@ import com.fittim.backend.repository.FitHistoryRepository;
 import com.fittim.backend.repository.UserRepository;
 import com.fittim.backend.repository.WardrobeItemRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,8 +19,13 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+/**
+ * Core Service for AI-based Outfit Recommendation.
+ * Orchestrates Wardrobe retrieval, Gemini AI calling, and History saving.
+ */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class FitService {
 
     private final GeminiService geminiService;
@@ -28,6 +34,14 @@ public class FitService {
     private final UserRepository userRepository;
     private final Random random = new Random();
 
+    /**
+     * Recommends an outfit based on user's wardrobe and request context.
+     * Tries AI first, resorts to random fallback on failure.
+     *
+     * @param email   User email
+     * @param request Recommendation context (Place, Mood, Season, Weather)
+     * @return FitResponseDto with recommended items and reason
+     */
     @Transactional
     public FitResponseDto recommend(String email, FitRequestDto request) {
         User user = userRepository.findByEmail(email)
@@ -76,7 +90,7 @@ public class FitService {
             }
         } catch (Exception e) {
             // Log error and fall back to random
-            System.out.println("AI Recommendation Failed: " + e.getMessage());
+            log.warn("AI Recommendation Failed (Falling back to Random): {}", e.getMessage());
         }
 
         // 2. Fallback to Random if AI failed or missing essential items

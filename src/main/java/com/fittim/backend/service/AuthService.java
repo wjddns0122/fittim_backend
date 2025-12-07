@@ -41,8 +41,10 @@ public class AuthService {
         long expirationTime = System.currentTimeMillis() + 5 * 60 * 1000; // 5 minutes validity
         verificationCodes.put(normalizedEmail, new VerificationInfo(code, expirationTime));
 
-        // In a real app, send email here. For now, print to console.
-        log.info("Verification code for {}: {}", normalizedEmail, code);
+        // For development/debugging: Print verification code to console
+        log.info("Sent verification code to {}: {}", normalizedEmail, code);
+        // KEEP this System.out as requested by user for explicit console visibility
+        // during dev
         System.out.println("Verification code for " + normalizedEmail + ": " + code);
     }
 
@@ -50,25 +52,23 @@ public class AuthService {
         String normalizedEmail = request.email().trim().toLowerCase();
         String normalizedCode = request.code().trim();
 
-        System.out.println("--- Verify Code Debug ---");
-        System.out.println("Raw Email: [" + request.email() + "], Normalized: [" + normalizedEmail + "]");
-        System.out.println("Raw Code: [" + request.code() + "], Normalized: [" + normalizedCode + "]");
+        log.debug("Verifying code for {}: {}", normalizedEmail, normalizedCode);
 
         VerificationInfo info = verificationCodes.get(normalizedEmail);
-        System.out.println("Stored Info: " + (info != null ? info.code() : "null"));
-        System.out.println("Current Keys: " + verificationCodes.keySet());
-        System.out.println("-------------------------");
 
         if (info == null) {
+            log.warn("Verification failed: Code not found or expired for {}", normalizedEmail);
             throw new IllegalArgumentException("Verification code not found or expired for " + normalizedEmail);
         }
 
         if (System.currentTimeMillis() > info.expirationTime()) {
             verificationCodes.remove(normalizedEmail);
+            log.warn("Verification failed: Code expired for {}", normalizedEmail);
             throw new IllegalArgumentException("Verification code expired");
         }
 
         if (!info.code().equals(normalizedCode)) {
+            log.warn("Verification failed: Invalid code for {}", normalizedEmail);
             throw new IllegalArgumentException(
                     "Invalid verification code. Expected: " + info.code() + ", Got: " + normalizedCode);
         }
@@ -110,12 +110,12 @@ public class AuthService {
     public JwtResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> {
-                    System.out.println("Login failed: User not found for email " + request.email());
+                    log.warn("Login failed: User not found for email {}", request.email());
                     return new IllegalArgumentException("Invalid email or password");
                 });
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            System.out.println("Login failed: Password mismatch for email " + request.email());
+            log.warn("Login failed: Password mismatch for email {}", request.email());
             throw new IllegalArgumentException("Invalid email or password");
         }
 
