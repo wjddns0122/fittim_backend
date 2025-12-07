@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FitService {
 
+    private final GeminiService geminiService;
     private final FitHistoryRepository fitHistoryRepository;
     private final WardrobeItemRepository wardrobeItemRepository;
     private final UserRepository userRepository;
@@ -49,29 +50,67 @@ public class FitService {
             throw new IllegalArgumentException("옷장에 상의와 하의가 최소 1벌씩은 있어야 추천할 수 있어요!");
         }
 
-        WardrobeItem randomTop = getRandomItem(tops);
-        WardrobeItem randomBottom = getRandomItem(bottoms);
-        WardrobeItem randomOuter = null;
+        WardrobeItem recommendedTop = null;
+        WardrobeItem recommendedBottom = null;
+        WardrobeItem recommendedOuter = null;
+        String recommendedReason = null;
 
-        if (season == Season.WINTER || season == Season.FALL) {
-            if (!outers.isEmpty()) {
-                randomOuter = getRandomItem(outers);
+        // 1. Try AI Recommendation
+        try {
+            // Mock Weather Data (Injecting as requested)
+            String weather = "Sunny, 20°C";
+
+            com.fittim.backend.dto.GeminiDto.RecommendationResult aiResult = geminiService.recommend(items,
+                    request.place(), request.mood(), season.name(), weather);
+
+            if (aiResult != null) {
+                if (aiResult.topId() != null)
+                    recommendedTop = findItemById(items, aiResult.topId());
+                if (aiResult.bottomId() != null)
+                    recommendedBottom = findItemById(items, aiResult.bottomId());
+                if (aiResult.outerId() != null)
+                    recommendedOuter = findItemById(items, aiResult.outerId());
+                recommendedReason = aiResult.reason();
             }
+        } catch (Exception e) {
+            // Log error and fall back to random
+            System.out.println("AI Recommendation Failed: " + e.getMessage());
+        }
+
+        // 2. Fallback to Random if AI failed or missing essential items
+        if (recommendedTop == null || recommendedBottom == null) {
+            recommendedTop = getRandomItem(tops);
+            recommendedBottom = getRandomItem(bottoms);
+
+            if (season == Season.WINTER || season == Season.FALL) {
+                if (!outers.isEmpty()) {
+                    recommendedOuter = getRandomItem(outers);
+                }
+            }
+            recommendedReason = "랜덤 추천 (AI 응답 실패 또는 조건 미충족)";
         }
 
         // Save History
         FitHistory history = FitHistory.builder()
                 .user(user)
-                .top(randomTop)
-                .bottom(randomBottom)
-                .outer(randomOuter)
+                .top(recommendedTop)
+                .bottom(recommendedBottom)
+                .outer(recommendedOuter)
                 .place(request.place())
-                .mood(null) // Mood is not in current request DTO, can be added later
+                .mood(request.mood()) // Now we can save mood from request
+                .reason(recommendedReason)
                 .build();
 
         fitHistoryRepository.save(history);
 
-        return FitResponseDto.of(randomTop, randomBottom, randomOuter);
+        return FitResponseDto.of(recommendedTop, recommendedBottom, recommendedOuter, recommendedReason);
+    }
+
+    private WardrobeItem findItemById(List<WardrobeItem> items, Long id) {
+        return items.stream()
+                .filter(item -> item.getId().equals(id))
+                .findFirst()
+                .orElse(null);
     }
 
     @Transactional(readOnly = true)

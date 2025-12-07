@@ -10,6 +10,7 @@ public record FitHistoryDto(
         String place,
         String mood,
         String imageUrl, // Representative image (Outer > Top)
+        String reason,
         String createdAt) {
     public static FitHistoryDto from(FitHistory entity) {
         String mainImageUrl = (entity.getOuter() != null) ? entity.getOuter().getImageUrl()
@@ -22,6 +23,7 @@ public record FitHistoryDto(
                 entity.getPlace(),
                 entity.getMood(),
                 mainImageUrl,
+                entity.getReason(),
                 entity.getCreatedAt().format(DateTimeFormatter.ISO_DATE_TIME));
     }
 }
