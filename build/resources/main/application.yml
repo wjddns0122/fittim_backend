@@ -32,3 +32,8 @@ gemini:
   api:
     key: ${GEMINI_API_KEY:dummy-key}
     url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+
+weather:
+  api:
+    key: ${WEATHER_API_KEY:dummy-key}
+    url: "https://api.openweathermap.org/data/2.5/weather"

@@ -57,8 +57,10 @@ public class FitService {
 
         // 1. Try AI Recommendation
         try {
-            // Mock Weather Data (Injecting as requested)
-            String weather = "Sunny, 20°C";
+            // Use weather from request or fallback
+            String weather = (request.weather() != null && !request.weather().isEmpty())
+                    ? request.weather()
+                    : "Sunny, 20°C"; // Default fallback
 
             com.fittim.backend.dto.GeminiDto.RecommendationResult aiResult = geminiService.recommend(items,
                     request.place(), request.mood(), season.name(), weather);
