@@ -7,7 +7,6 @@ import com.fittim.backend.dto.GeminiDto.Content;
 import com.fittim.backend.dto.GeminiDto.GenerateContentRequest;
 import com.fittim.backend.dto.GeminiDto.Part;
 import com.fittim.backend.dto.GeminiDto.RecommendationResult;
-import com.fittim.backend.entity.Category;
 import com.fittim.backend.entity.WardrobeItem;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
