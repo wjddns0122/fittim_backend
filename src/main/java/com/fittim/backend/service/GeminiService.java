@@ -31,7 +31,7 @@ public class GeminiService {
     private String geminiApiUrl;
 
     private final ObjectMapper objectMapper;
-    private final WebClient webClient = WebClient.create();
+    private final WebClient webClient;
 
     public RecommendationResult recommend(List<WardrobeItem> userItems, String place, String mood, String season,
             String weather) {

@@ -10,6 +10,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "wardrobe_item", indexes = {
+        @Index(name = "idx_wardrobe_user_season", columnList = "user_id, season"),
+        @Index(name = "idx_wardrobe_user_category", columnList = "user_id, category")
+})
 public class WardrobeItem extends BaseTimeEntity {
 
     @Id
