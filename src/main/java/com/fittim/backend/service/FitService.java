@@ -65,6 +65,12 @@ public class FitService {
             items.addAll(allSeasonItems);
         }
 
+        // Optimization: Limit items sent to AI to most recent 30
+        List<WardrobeItem> recentItems = items.stream()
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .limit(30)
+                .collect(Collectors.toList());
+
         List<WardrobeItem> tops = filterByCategory(items, Category.TOP);
         List<WardrobeItem> bottoms = filterByCategory(items, Category.BOTTOM);
         List<WardrobeItem> outers = filterByCategory(items, Category.OUTER);
@@ -85,7 +91,7 @@ public class FitService {
                     ? request.weather()
                     : "Sunny, 20°C"; // Default fallback
 
-            com.fittim.backend.dto.GeminiDto.RecommendationResult aiResult = geminiService.recommend(items,
+            com.fittim.backend.dto.GeminiDto.RecommendationResult aiResult = geminiService.recommend(recentItems,
                     request.place(), request.mood(), season.name(), weather);
 
             if (aiResult != null) {

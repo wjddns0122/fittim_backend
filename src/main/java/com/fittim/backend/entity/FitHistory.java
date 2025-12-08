@@ -11,7 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "fit_history")
+@Table(name = "fit_history", indexes = {
+        @Index(name = "idx_fit_history_user_created_at", columnList = "user_id, created_at")
+})
 public class FitHistory extends BaseTimeEntity {
 
     @Id
