@@ -36,7 +36,8 @@ public class FitHistory extends BaseTimeEntity {
 
     private String place; // e.g. "CAMPUS", "CAFE"
     private String mood; // e.g. "CASUAL", "MINIMAL" (currently from request or derived)
+    private String season;
 
     @Column(length = 1000)
-    private String reason;
+    private String recommendationReason;
 }

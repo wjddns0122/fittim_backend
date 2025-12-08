@@ -54,7 +54,16 @@ public class FitService {
             throw new IllegalArgumentException("Invalid season: " + request.season());
         }
 
-        List<WardrobeItem> items = wardrobeItemRepository.findAllByUserAndSeason(user, season);
+        List<WardrobeItem> items;
+        if (season == Season.ALL) {
+            items = wardrobeItemRepository.findAllByUserOrderByCreatedAtDesc(user);
+        } else {
+            List<WardrobeItem> seasonItems = wardrobeItemRepository.findAllByUserAndSeason(user, season);
+            List<WardrobeItem> allSeasonItems = wardrobeItemRepository.findAllByUserAndSeason(user, Season.ALL);
+
+            items = new java.util.ArrayList<>(seasonItems);
+            items.addAll(allSeasonItems);
+        }
 
         List<WardrobeItem> tops = filterByCategory(items, Category.TOP);
         List<WardrobeItem> bottoms = filterByCategory(items, Category.BOTTOM);
@@ -98,7 +107,7 @@ public class FitService {
             recommendedTop = getRandomItem(tops);
             recommendedBottom = getRandomItem(bottoms);
 
-            if (season == Season.WINTER || season == Season.FALL) {
+            if (season == Season.WINTER || season == Season.FALL || season == Season.ALL) {
                 if (!outers.isEmpty()) {
                     recommendedOuter = getRandomItem(outers);
                 }
@@ -113,13 +122,15 @@ public class FitService {
                 .bottom(recommendedBottom)
                 .outer(recommendedOuter)
                 .place(request.place())
-                .mood(request.mood()) // Now we can save mood from request
-                .reason(recommendedReason)
+                .mood(request.mood() != null ? request.mood() : "Daily") // Default if null
+                .season(season.name())
+                .recommendationReason(recommendedReason)
                 .build();
 
         fitHistoryRepository.save(history);
 
-        return FitResponseDto.of(recommendedTop, recommendedBottom, recommendedOuter, recommendedReason);
+        return FitResponseDto.of(request.place(), request.mood() != null ? request.mood() : "Daily", season.name(),
+                recommendedTop, recommendedBottom, recommendedOuter, recommendedReason);
     }
 
     private WardrobeItem findItemById(List<WardrobeItem> items, Long id) {
@@ -141,6 +152,13 @@ public class FitService {
                 .stream()
                 .map(com.fittim.backend.dto.FitHistoryDto::from)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public com.fittim.backend.dto.FitHistoryDetailDto getFitHistoryDetail(Long id) {
+        FitHistory history = fitHistoryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Fit history not found"));
+        return com.fittim.backend.dto.FitHistoryDetailDto.from(history);
     }
 
     private List<WardrobeItem> filterByCategory(List<WardrobeItem> items, Category category) {

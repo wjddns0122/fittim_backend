@@ -32,4 +32,10 @@ public class FitController {
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(fitService.getFitHistory(userDetails.getUsername()));
     }
+
+    @org.springframework.web.bind.annotation.GetMapping("/{id}")
+    public ResponseEntity<com.fittim.backend.dto.FitHistoryDetailDto> getFitHistoryDetail(
+            @org.springframework.web.bind.annotation.PathVariable Long id) {
+        return ResponseEntity.ok(fitService.getFitHistoryDetail(id));
+    }
 }

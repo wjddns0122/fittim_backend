@@ -9,6 +9,7 @@ public record FitHistoryDto(
         String title, // "오늘의 {place} 룩"
         String place,
         String mood,
+        String season,
         String imageUrl, // Representative image (Outer > Top)
         String reason,
         String createdAt) {
@@ -22,8 +23,9 @@ public record FitHistoryDto(
                 displayTitle,
                 entity.getPlace(),
                 entity.getMood(),
+                entity.getSeason(),
                 mainImageUrl,
-                entity.getReason(),
+                entity.getRecommendationReason(),
                 entity.getCreatedAt().format(DateTimeFormatter.ISO_DATE_TIME));
     }
 }
