@@ -10,6 +10,9 @@ public record WardrobeDto(
         Category category,
         Season season,
         String imageUrl,
+        String name,
+        String brand,
+        String colors,
         LocalDateTime createdAt) {
     public static WardrobeDto from(WardrobeItem item) {
         return new WardrobeDto(
@@ -17,6 +20,9 @@ public record WardrobeDto(
                 item.getCategory(),
                 item.getSeason(),
                 item.getImageUrl(),
+                item.getName(),
+                item.getBrand(),
+                item.getColors(),
                 item.getCreatedAt());
     }
 }

@@ -22,4 +22,20 @@ public class UserController {
         UserProfileDto profile = userService.getMyProfile(userDetails.getUsername());
         return ResponseEntity.ok(profile);
     }
+
+    @org.springframework.web.bind.annotation.PutMapping("/me")
+    public ResponseEntity<UserProfileDto> updateProfile(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @org.springframework.web.bind.annotation.RequestBody com.fittim.backend.dto.UserProfileUpdateDto dto) {
+        UserProfileDto updatedProfile = userService.updateProfile(userDetails.getUsername(), dto);
+        return ResponseEntity.ok(updatedProfile);
+    }
+
+    @org.springframework.web.bind.annotation.PatchMapping("/me")
+    public ResponseEntity<UserProfileDto> patchProfile(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @org.springframework.web.bind.annotation.RequestBody com.fittim.backend.dto.UserProfileUpdateDto dto) {
+        UserProfileDto updatedProfile = userService.patchProfile(userDetails.getUsername(), dto);
+        return ResponseEntity.ok(updatedProfile);
+    }
 }

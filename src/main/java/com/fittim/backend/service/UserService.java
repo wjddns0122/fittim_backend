@@ -11,12 +11,44 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
+        private final UserRepository userRepository;
 
-    @Transactional(readOnly = true)
-    public UserProfileDto getMyProfile(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        return UserProfileDto.from(user);
-    }
+        @Transactional(readOnly = true)
+        public UserProfileDto getMyProfile(String email) {
+                User user = userRepository.findByEmail(email)
+                                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                return UserProfileDto.from(user);
+        }
+
+        @Transactional
+        public UserProfileDto updateProfile(String email, com.fittim.backend.dto.UserProfileUpdateDto dto) {
+                User user = userRepository.findByEmail(email)
+                                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+                user.updateProfile(
+                                dto.height(),
+                                dto.weight(),
+                                dto.bodyType(),
+                                dto.gender(),
+                                dto.preferredStyles(),
+                                dto.preferredMalls());
+
+                return UserProfileDto.from(user);
+        }
+
+        @Transactional
+        public UserProfileDto patchProfile(String email, com.fittim.backend.dto.UserProfileUpdateDto dto) {
+                User user = userRepository.findByEmail(email)
+                                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+                user.patchProfile(
+                                dto.height(),
+                                dto.weight(),
+                                dto.bodyType(),
+                                dto.gender(),
+                                dto.preferredStyles(),
+                                dto.preferredMalls());
+
+                return UserProfileDto.from(user);
+        }
 }

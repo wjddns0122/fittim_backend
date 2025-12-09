@@ -27,38 +27,70 @@ public class WardrobeService {
         private final UserRepository userRepository;
 
         @Transactional
-        public WardrobeDto uploadItem(String email, MultipartFile image, Category category, Season season)
-                        throws IOException {
-                User user = userRepository.findByEmail(email)
+        public WardrobeDto uploadItem(String username, MultipartFile image, Category category, Season season,
+                        String name, String brand, String colors) throws IOException {
+                User user = userRepository.findByEmail(username)
                                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-                // Save image to local file system
-                String filename = UUID.randomUUID().toString() + "_" + image.getOriginalFilename();
-                String uploadDir = "uploads/";
-                File directory = new File(uploadDir);
-                if (!directory.exists()) {
-                        directory.mkdir();
+                if (image.isEmpty()) {
+                        throw new IllegalArgumentException("Image file is empty");
                 }
-                String filePath = uploadDir + filename;
-                image.transferTo(new File(new File("").getAbsolutePath() + "/" + filePath));
 
-                // Generate URL
-                String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                                .path("/images/")
-                                .path(filename)
-                                .toUriString();
+                // 1. Save Image
+                String imageUrl = saveImage(image);
 
-                // Save metadata to DB
+                // 2. Save Item
                 WardrobeItem item = WardrobeItem.builder()
                                 .user(user)
                                 .category(category)
                                 .season(season)
-                                .imageUrl(fileUrl)
+                                .imageUrl(imageUrl)
+                                .name(name)
+                                .brand(brand)
+                                .colors(colors)
                                 .build();
 
-                wardrobeItemRepository.save(item);
+                WardrobeItem savedItem = wardrobeItemRepository.save(item);
 
+                return WardrobeDto.from(savedItem);
+        }
+
+        @Transactional
+        public WardrobeDto updateItem(Long id, com.fittim.backend.dto.WardrobeUpdateDto dto, String username) {
+                WardrobeItem item = wardrobeItemRepository.findById(id)
+                                .orElseThrow(() -> new IllegalArgumentException("Item not found"));
+
+                if (!item.getUser().getEmail().equals(username)) {
+                        throw new IllegalArgumentException("Unauthorized");
+                }
+
+                item.update(dto.name(), dto.brand(), dto.colors(), dto.category(), dto.season());
                 return WardrobeDto.from(item);
+        }
+
+        @Transactional
+        public WardrobeDto patchItem(Long id, com.fittim.backend.dto.WardrobeUpdateDto dto, String username) {
+                WardrobeItem item = wardrobeItemRepository.findById(id)
+                                .orElseThrow(() -> new IllegalArgumentException("Item not found"));
+
+                if (!item.getUser().getEmail().equals(username)) {
+                        throw new IllegalArgumentException("Unauthorized");
+                }
+
+                item.patch(dto.name(), dto.brand(), dto.colors(), dto.category(), dto.season());
+                return WardrobeDto.from(item);
+        }
+
+        @Transactional
+        public void deleteItem(Long id, String username) {
+                WardrobeItem item = wardrobeItemRepository.findById(id)
+                                .orElseThrow(() -> new IllegalArgumentException("Item not found"));
+
+                if (!item.getUser().getEmail().equals(username)) {
+                        throw new IllegalArgumentException("Unauthorized");
+                }
+
+                wardrobeItemRepository.delete(item);
         }
 
         @Transactional(readOnly = true)
@@ -79,5 +111,21 @@ public class WardrobeService {
                 return wardrobeItemRepository.findTop5ByUserIdOrderByCreatedAtDesc(user.getId()).stream()
                                 .map(WardrobeDto::from)
                                 .collect(Collectors.toList());
+        }
+
+        private String saveImage(MultipartFile image) throws IOException {
+                String filename = UUID.randomUUID().toString() + "_" + image.getOriginalFilename();
+                String uploadDir = "uploads/";
+                File directory = new File(uploadDir);
+                if (!directory.exists()) {
+                        directory.mkdir();
+                }
+                String filePath = uploadDir + filename;
+                image.transferTo(new File(new File("").getAbsolutePath() + "/" + filePath));
+
+                return ServletUriComponentsBuilder.fromCurrentContextPath()
+                                .path("/images/")
+                                .path(filename)
+                                .toUriString();
         }
 }

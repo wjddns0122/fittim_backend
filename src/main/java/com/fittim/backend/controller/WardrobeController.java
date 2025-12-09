@@ -27,13 +27,45 @@ public class WardrobeController {
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestPart("image") MultipartFile image,
             @RequestParam("category") String category,
-            @RequestParam("season") String season) throws IOException {
+            @RequestParam("season") String season,
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "brand", required = false) String brand,
+            @RequestParam(value = "colors", required = false) String colors) throws IOException {
         WardrobeDto savedItem = wardrobeService.uploadItem(
                 userDetails.getUsername(),
                 image,
                 Category.valueOf(category.toUpperCase()),
-                Season.valueOf(season.toUpperCase()));
+                Season.valueOf(season.toUpperCase()),
+                name,
+                brand,
+                colors);
         return ResponseEntity.ok(savedItem);
+    }
+
+    @org.springframework.web.bind.annotation.PutMapping("/{id}")
+    public ResponseEntity<WardrobeDto> updateItem(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long id,
+            @org.springframework.web.bind.annotation.RequestBody com.fittim.backend.dto.WardrobeUpdateDto dto) {
+        WardrobeDto updatedItem = wardrobeService.updateItem(id, dto, userDetails.getUsername());
+        return ResponseEntity.ok(updatedItem);
+    }
+
+    @org.springframework.web.bind.annotation.PatchMapping("/{id}")
+    public ResponseEntity<WardrobeDto> patchItem(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long id,
+            @org.springframework.web.bind.annotation.RequestBody com.fittim.backend.dto.WardrobeUpdateDto dto) {
+        WardrobeDto updatedItem = wardrobeService.patchItem(id, dto, userDetails.getUsername());
+        return ResponseEntity.ok(updatedItem);
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteItem(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long id) {
+        wardrobeService.deleteItem(id, userDetails.getUsername());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping

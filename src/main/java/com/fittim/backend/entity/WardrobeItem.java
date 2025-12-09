@@ -33,11 +33,45 @@ public class WardrobeItem extends BaseTimeEntity {
 
     private String imageUrl;
 
+    @Column
+    private String name;
+
+    @Column
+    private String brand;
+
+    @Column
+    private String colors; // Comma-separated
+
     @Builder
-    public WardrobeItem(User user, Category category, Season season, String imageUrl) {
+    public WardrobeItem(User user, Category category, Season season, String imageUrl, String name, String brand,
+            String colors) {
         this.user = user;
         this.category = category;
         this.season = season;
         this.imageUrl = imageUrl;
+        this.name = name;
+        this.brand = brand;
+        this.colors = colors;
+    }
+
+    public void update(String name, String brand, String colors, Category category, Season season) {
+        this.name = name;
+        this.brand = brand;
+        this.colors = colors;
+        this.category = category;
+        this.season = season;
+    }
+
+    public void patch(String name, String brand, String colors, Category category, Season season) {
+        if (name != null)
+            this.name = name;
+        if (brand != null)
+            this.brand = brand;
+        if (colors != null)
+            this.colors = colors;
+        if (category != null)
+            this.category = category;
+        if (season != null)
+            this.season = season;
     }
 }
