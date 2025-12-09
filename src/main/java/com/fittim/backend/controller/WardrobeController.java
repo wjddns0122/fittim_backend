@@ -25,20 +25,10 @@ public class WardrobeController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<WardrobeDto> uploadItem(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestPart("image") MultipartFile image,
-            @RequestParam("category") String category,
-            @RequestParam("season") String season,
-            @RequestParam(value = "name", required = false) String name,
-            @RequestParam(value = "brand", required = false) String brand,
-            @RequestParam(value = "colors", required = false) String colors) throws IOException {
+            @ModelAttribute com.fittim.backend.dto.WardrobeItemRequest request) throws IOException {
         WardrobeDto savedItem = wardrobeService.uploadItem(
                 userDetails.getUsername(),
-                image,
-                Category.valueOf(category.toUpperCase()),
-                Season.valueOf(season.toUpperCase()),
-                name,
-                brand,
-                colors);
+                request);
         return ResponseEntity.ok(savedItem);
     }
 

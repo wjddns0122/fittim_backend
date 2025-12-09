@@ -5,6 +5,8 @@ import com.fittim.backend.entity.Season;
 import com.fittim.backend.entity.WardrobeItem;
 import java.time.LocalDateTime;
 
+import java.util.List;
+
 public record WardrobeDto(
         Long id,
         Category category,
@@ -12,7 +14,8 @@ public record WardrobeDto(
         String imageUrl,
         String name,
         String brand,
-        String colors,
+        List<String> seasons,
+        List<String> colors,
         LocalDateTime createdAt) {
     public static WardrobeDto from(WardrobeItem item) {
         return new WardrobeDto(
@@ -22,6 +25,7 @@ public record WardrobeDto(
                 item.getImageUrl(),
                 item.getName(),
                 item.getBrand(),
+                item.getSeasons(),
                 item.getColors(),
                 item.getCreatedAt());
     }

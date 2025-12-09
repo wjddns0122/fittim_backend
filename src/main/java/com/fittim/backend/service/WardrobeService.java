@@ -27,27 +27,33 @@ public class WardrobeService {
         private final UserRepository userRepository;
 
         @Transactional
-        public WardrobeDto uploadItem(String username, MultipartFile image, Category category, Season season,
-                        String name, String brand, String colors) throws IOException {
+        public WardrobeDto uploadItem(String username, com.fittim.backend.dto.WardrobeItemRequest request)
+                        throws IOException {
                 User user = userRepository.findByEmail(username)
                                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-                if (image.isEmpty()) {
+                if (request.image().isEmpty()) {
                         throw new IllegalArgumentException("Image file is empty");
                 }
 
                 // 1. Save Image
-                String imageUrl = saveImage(image);
+                String imageUrl = saveImage(request.image());
 
                 // 2. Save Item
+                Category category = Category.valueOf(request.category().toUpperCase());
+                Season seasonParam = (request.season() != null && !request.season().isEmpty())
+                                ? Season.valueOf(request.season().toUpperCase())
+                                : Season.ALL;
+
                 WardrobeItem item = WardrobeItem.builder()
                                 .user(user)
                                 .category(category)
-                                .season(season)
+                                .season(seasonParam)
                                 .imageUrl(imageUrl)
-                                .name(name)
-                                .brand(brand)
-                                .colors(colors)
+                                .name(request.name())
+                                .brand(request.brand())
+                                .colors(request.colors())
+                                .userSeasons(request.seasons())
                                 .build();
 
                 WardrobeItem savedItem = wardrobeItemRepository.save(item);
@@ -64,7 +70,7 @@ public class WardrobeService {
                         throw new IllegalArgumentException("Unauthorized");
                 }
 
-                item.update(dto.name(), dto.brand(), dto.colors(), dto.category(), dto.season());
+                item.update(dto.name(), dto.brand(), dto.colors(), dto.category(), dto.season(), dto.seasons());
                 return WardrobeDto.from(item);
         }
 
@@ -77,7 +83,7 @@ public class WardrobeService {
                         throw new IllegalArgumentException("Unauthorized");
                 }
 
-                item.patch(dto.name(), dto.brand(), dto.colors(), dto.category(), dto.season());
+                item.patch(dto.name(), dto.brand(), dto.colors(), dto.category(), dto.season(), dto.seasons());
                 return WardrobeDto.from(item);
         }
 

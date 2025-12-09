@@ -6,7 +6,8 @@ import com.fittim.backend.entity.Season;
 public record WardrobeUpdateDto(
         String name,
         String brand,
-        String colors,
+        java.util.List<String> colors,
         Category category,
-        Season season) {
+        Season season,
+        java.util.List<String> seasons) {
 }
